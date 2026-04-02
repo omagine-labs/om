@@ -1,0 +1,26 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:@sentry/deno@10.42": "10.42.0"
+  },
+  "npm": {
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
+    "@sentry/core@10.42.0": {
+      "integrity": "sha512-L4rMrXMqUKBanpjpMT+TuAVk6xAijz6AWM6RiEYpohAr7SGcCEc1/T0+Ep1eLV8+pwWacfU27OvELIyNeOnGzA=="
+    },
+    "@sentry/deno@10.42.0": {
+      "integrity": "sha512-/31A8UjjJcYv0UXwpn7G8j0wtpbKvT1wvj1vFL9WE4ox2VMUt7tIK5tJ4ZiHa5z6CKrv5M3wav9a8r4jbaZd7A==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@sentry/core"
+      ]
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:@sentry/deno@10.42"
+    ]
+  }
+}

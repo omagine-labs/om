@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@sentry/deno": "npm:@sentry/deno@~10.42.0"
+  },
+  "test": {
+    "include": ["**/*.test.ts"]
+  }
+}

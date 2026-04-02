@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Om needs microphone access to record your voice during meetings.</string>
+  <key>NSScreenCaptureDescription</key>
+  <string>Om needs screen recording permission to capture system audio (the voices of other meeting participants). We never record visual content from your screen - only audio from your meetings.</string>
+  <key>NSAppleEventsUsageDescription</key>
+  <string>Om uses read-only browser access to detect when you join a meeting in Google Meet, Teams, or other browser-based platforms. We only read tab URLs - we cannot see passwords, browsing history, or other sensitive data.</string>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <false/>
+    <key>NSAllowsLocalNetworking</key>
+    <true/>
+    <key>NSExceptionDomains</key>
+    <dict>
+      <key>supabase.co</key>
+      <dict>
+        <key>NSIncludesSubdomains</key>
+        <true/>
+        <key>NSExceptionAllowsInsecureHTTPLoads</key>
+        <false/>
+        <key>NSExceptionRequiresForwardSecrecy</key>
+        <true/>
+      </dict>
+      <key>posthog.com</key>
+      <dict>
+        <key>NSIncludesSubdomains</key>
+        <true/>
+        <key>NSExceptionAllowsInsecureHTTPLoads</key>
+        <false/>
+        <key>NSExceptionRequiresForwardSecrecy</key>
+        <true/>
+      </dict>
+      <key>sentry.io</key>
+      <dict>
+        <key>NSIncludesSubdomains</key>
+        <true/>
+        <key>NSExceptionAllowsInsecureHTTPLoads</key>
+        <false/>
+        <key>NSExceptionRequiresForwardSecrecy</key>
+        <true/>
+      </dict>
+      <key>intercom.io</key>
+      <dict>
+        <key>NSIncludesSubdomains</key>
+        <true/>
+        <key>NSExceptionAllowsInsecureHTTPLoads</key>
+        <false/>
+        <key>NSExceptionRequiresForwardSecrecy</key>
+        <true/>
+      </dict>
+    </dict>
+  </dict>
+</dict>
+</plist>

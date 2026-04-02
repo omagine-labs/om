@@ -1,0 +1,26 @@
+# Prettier Ignore - Performance Optimization
+# Excludes build artifacts and generated files from formatting checks
+# to significantly reduce formatting time (from ~30s to ~2s)
+
+# Build outputs - Next.js generates thousands of files
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Test coverage
+coverage/
+
+# Environment files
+.env*.local
+
+# Generated types (should be formatted by generator, not manually)
+supabase/database.types.ts
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

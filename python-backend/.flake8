@@ -1,0 +1,17 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    .venv,
+    build,
+    dist,
+    *.egg-info,
+    app/routes/video.py
+ignore =
+    E203,
+    W503,
+    W504
+per-file-ignores =
+    app/routes/analysis.py:E501

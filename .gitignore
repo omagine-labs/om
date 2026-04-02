@@ -1,0 +1,84 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+supabase-backend/node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Environment variables
+.env
+.env.local
+.env*.local
+.env.production
+.env.staging
+supabase-backend/.env*
+supabase/functions/.env
+
+# Testing
+/coverage
+frontend/coverage/
+.coverage
+htmlcov/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Production
+/build
+
+# Uploaded recordings and generated data
+frontend/public/uploads/
+supabase-backend/storage/
+supabase-backend/data/
+python-backend/storage/
+python-backend/venv/
+python-backend/**/__pycache__/
+**/*.pyc
+**/*.pyo
+recording-samples/
+frontend/storage/uploads
+
+# Supabase CLI temporary files
+supabase/.temp/
+
+# TypeScript
+*.tsbuildinfo
+frontend/next-env.d.ts
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+*.pem
+
+# Vercel
+.vercel
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Desktop app (Electron)
+om-desktop/out/
+om-desktop/.vite/
+om-desktop/.webpack/
+om-desktop/build/
+om-desktop/bin/
+om-desktop/resources/bin/ffmpeg-*
+!om-desktop/resources/bin/README.md
+

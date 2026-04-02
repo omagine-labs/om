@@ -1,0 +1,58 @@
+{
+  "name": "chip-mono-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Meeting Intelligence Assistant - Monorepo",
+  "workspaces": [
+    "frontend",
+    "supabase",
+    "om-desktop"
+  ],
+  "scripts": {
+    "setup": "./scripts/setup.sh",
+    "start": "./scripts/start.sh",
+    "start:web": "./scripts/start.sh --no-desktop",
+    "stop": "./scripts/stop.sh",
+    "dev": "./scripts/start.sh",
+    "check-pr": "./scripts/check-pr.sh",
+    "install:all": "npm install && cd frontend && npm install && cd ../supabase && npm install && cd ../om-desktop && npm install && cd ../python-backend && pip install -r requirements.txt",
+    "test": "npm run test:frontend && npm run test:python && npm run test:supabase && npm run test:desktop",
+    "test:frontend": "npm run test --workspace=frontend",
+    "test:python": "cd python-backend && source venv/bin/activate && pytest",
+    "test:python:coverage": "cd python-backend && source venv/bin/activate && pytest --cov-report=html && open htmlcov/index.html",
+    "test:python:watch": "cd python-backend && source venv/bin/activate && pytest-watch",
+    "test:supabase": "cd supabase/functions && deno test --no-lock --allow-env **/*.test.ts",
+    "test:desktop": "npm run test --workspace=om-desktop",
+    "test:desktop:watch": "npm run test:watch --workspace=om-desktop",
+    "test:desktop:ui": "npm run test:ui --workspace=om-desktop",
+    "test:desktop:coverage": "npm run test:coverage --workspace=om-desktop",
+    "test:watch": "npm run test:watch --workspace=frontend",
+    "test:coverage": "npm run test:coverage --workspace=frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:frontend": "npm run lint --workspace=frontend",
+    "lint:backend": "npm run lint --workspace=supabase",
+    "lint:desktop": "npm run lint --workspace=om-desktop",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\" \"!**/node_modules/**\" \"!**/.next/**\" \"!**/build/**\" \"!**/dist/**\" \"!**/python-backend/**\" \"!**/out/**\" \"!**/.vite/**\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\" \"!**/node_modules/**\" \"!**/.next/**\" \"!**/build/**\" \"!**/dist/**\" \"!**/python-backend/**\" \"!**/out/**\" \"!**/.vite/**\"",
+    "format:frontend": "npm run format --workspace=frontend",
+    "format:backend": "npm run format --workspace=supabase",
+    "format:desktop": "npm run format --workspace=om-desktop",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:python": "cd python-backend && source venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+    "dev:desktop": "npm run start --workspace=om-desktop",
+    "dev:all": "./scripts/start.sh",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:desktop": "npm run package --workspace=om-desktop",
+    "build:desktop:production": "npm run make:production --workspace=om-desktop",
+    "db:types": "supabase gen types typescript --local > supabase/database.types.ts",
+    "db:sync-types": "cp supabase/database.types.ts frontend/supabase/database.types.ts && cp supabase/database.types.ts om-desktop/src/dashboard/types/database.ts",
+    "db:types:sync": "npm run db:types && npm run db:sync-types"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0"
+  }
+}

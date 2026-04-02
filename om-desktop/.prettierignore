@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build outputs
+out
+dist
+dist-electron
+dist-renderer
+**/dist-electron
+**/dist-renderer
+build
+*.node
+
+# Generated files
+.vite
+.webpack
+
+# Package files
+package-lock.json
+*.log
+
+# System files
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Generated database types
+src/dashboard/types/database.ts

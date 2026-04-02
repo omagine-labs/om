@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Error - Omagine</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Main Content -->
+        <div style="background: white; border-radius: 16px; padding: 48px 40px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0;">
+            <h2 style="color: #0f766e; margin-top: 0; margin-bottom: 16px; font-size: 28px; text-align: center; font-weight: 700;">
+                We Couldn't Process Your Recording
+            </h2>
+
+            <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin-bottom: 24px; text-align: center;">
+                Unfortunately, we encountered an issue while processing your meeting recording
+            </p>
+
+            <!-- Error Message Box -->
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 18px 20px; margin-bottom: 32px; border-radius: 8px;">
+                <p style="margin: 0; color: #92400e; font-size: 15px; line-height: 1.5;">
+                    {error_message}
+                </p>
+            </div>
+
+            <!-- Troubleshooting Tips -->
+            <h3 style="color: #0f766e; margin-top: 32px; margin-bottom: 16px; font-size: 19px; font-weight: 600;">
+                What You Can Try:
+            </h3>
+            <ul style="color: #64748b; font-size: 15px; line-height: 1.7; padding-left: 24px; margin: 0;">
+                <li style="margin-bottom: 12px;">Ensure your file is a valid video or audio format (MP4, MOV, WebM, MP3, etc.)</li>
+                <li style="margin-bottom: 12px;">Check that your recording is between 10 minutes and 2 hours long</li>
+                <li style="margin-bottom: 12px;">Verify that the recording contains clear speech audio</li>
+                <li style="margin-bottom: 12px;">Try uploading again with a different recording</li>
+            </ul>
+
+            <!-- CTA Section -->
+            <div style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); padding: 32px; border-radius: 12px; text-align: center; margin-top: 32px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);">
+                <h3 style="color: white; margin-top: 0; margin-bottom: 14px; font-size: 22px; font-weight: 700;">
+                    Ready to Try Again?
+                </h3>
+                <p style="color: rgba(255, 255, 255, 0.95); font-size: 15px; margin-bottom: 22px; line-height: 1.5;">
+                    Upload a new recording to get your communication analysis
+                </p>
+                <a href="https://omaginelabs.com/upload"
+                   style="display: inline-block; background: white; color: #0d9488; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                    Upload Another Recording →
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 40px; color: #94a3b8; font-size: 13px;">
+            <p style="margin: 0 0 8px 0;">Need help? Reply to this email or visit our support page.</p>
+            <p style="margin: 0;">
+                <a href="{frontend_url}" style="color: #0d9488; text-decoration: none; font-weight: 500;">Omagine</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

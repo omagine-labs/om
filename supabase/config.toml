@@ -1,0 +1,91 @@
+project_id = "your-project-id"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+# Force localhost instead of 127.0.0.1 for OAuth redirects (required by Azure)
+external_url = "http://localhost:54321"
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[studio]
+port = 54323
+
+[inbucket]
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+file_size_limit = "50MiB"
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = [
+  "https://localhost:3000",
+  "http://localhost:3000/auth/callback",
+  "om://auth/callback"
+]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = true
+
+[auth.external.azure]
+enabled = true
+client_id = "env(SUPABASE_AUTH_AZURE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_AZURE_SECRET)"
+url = "env(SUPABASE_AUTH_AZURE_URL)"
+
+[functions.process-meeting]
+verify_jwt = false
+
+[functions.get-job-status]
+verify_jwt = true
+
+[functions.weekly-rollup-cron]
+verify_jwt = false
+
+[functions.baseline-update-cron]
+verify_jwt = false
+
+[functions.recording-cleanup-cron]
+verify_jwt = false
+
+[functions.monitoring-digest-cron]
+verify_jwt = false
+
+[functions.send-team-alert]
+verify_jwt = false
+
+[functions.create-anonymous-meeting]
+verify_jwt = false
+
+[functions.stuck-jobs-monitor]
+verify_jwt = false
+
+# Note: Cron schedules are configured in production Supabase Dashboard
+# - weekly-rollup-cron: "0 2 * * 1" (Every Monday at 2 AM)
+# - baseline-update-cron: "0 3 * * *" (Every day at 3 AM)
+# - recording-cleanup-cron: "0 4 * * *" (Every day at 4 AM)
+# - monitoring-digest-cron: "0 9 * * *" (Every day at 9 AM UTC)
+# - stuck-jobs-monitor: "*/5 * * * *" (Every 5 minutes)
+
+# Disable analytics (Logflare) for local development - saves ~750 MB RAM
+[analytics]
+enabled = false
+
+# Disable realtime for local development - saves ~250 MB RAM
+# We don't use Realtime subscriptions (.on('INSERT'), etc.)
+[realtime]
+enabled = false

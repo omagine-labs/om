@@ -1,0 +1,187 @@
+{
+  "name": "om-desktop",
+  "productName": "Om",
+  "version": "1.0.1",
+  "description": "Om - Automated meeting ingestion and analysis desktop app",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "postinstall": "node scripts/link-electron.js",
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "build:mac": "npm run build && electron-builder --mac --publish never",
+    "build:local": "./scripts/build-local.sh",
+    "build:local:all": "./scripts/build-local-all.sh",
+    "build:production": "./scripts/build-production.sh",
+    "publish": "./scripts/publish-release.sh",
+    "lint": "eslint --ext .ts,.tsx .",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "check-pr": "./scripts/check-pr.sh",
+    "rebuild": "node-gyp rebuild",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "icon:generate": "node scripts/generate-icon.js",
+    "icon:convert": "scripts/convert-icon.sh",
+    "icon:build": "npm run icon:generate && npm run icon:convert"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Omagine Labs",
+    "email": "team@omaginelabs.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/om-labs/om-desktop.git"
+  },
+  "build": {
+    "appId": "com.electron.om",
+    "productName": "Om",
+    "asar": true,
+    "afterPack": "./scripts/afterPack.js",
+    "files": [
+      "dist-electron/**/*",
+      "dist-renderer/**/*",
+      "assets/menu-icon.png",
+      "assets/menu-icon@2x.png",
+      "build/Release/screen_recorder.node",
+      "build/Release/window_detector.node",
+      "build/Release/menu_bar_appearance.node",
+      "resources/bin/ffmpeg-arm64",
+      "resources/bin/ffmpeg-x86_64",
+      "resources/bin/ffprobe-arm64",
+      "resources/bin/ffprobe-x86_64"
+    ],
+    "extraResources": [
+      {
+        "from": "build/Release/screen_recorder.node",
+        "to": "screen_recorder.node"
+      },
+      {
+        "from": "build/Release/window_detector.node",
+        "to": "window_detector.node"
+      },
+      {
+        "from": "build/Release/menu_bar_appearance.node",
+        "to": "menu_bar_appearance.node"
+      },
+      {
+        "from": "resources/bin/ffmpeg-arm64",
+        "to": "bin/ffmpeg-arm64"
+      },
+      {
+        "from": "resources/bin/ffmpeg-x86_64",
+        "to": "bin/ffmpeg-x86_64"
+      },
+      {
+        "from": "resources/bin/ffprobe-arm64",
+        "to": "bin/ffprobe-arm64"
+      },
+      {
+        "from": "resources/bin/ffprobe-x86_64",
+        "to": "bin/ffprobe-x86_64"
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "om-labs",
+        "repo": "om-releases",
+        "releaseType": "release"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dir"
+        },
+        {
+          "target": "zip"
+        }
+      ],
+      "icon": "assets/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "config/entitlements/entitlements.mac.plist",
+      "entitlementsInherit": "config/entitlements/entitlements.mac.inherit.plist",
+      "extendInfo": "config/Info.plist"
+    },
+    "dmg": {
+      "icon": "assets/om-installer.icns",
+      "background": "assets/dmg-background.png",
+      "contents": [
+        {
+          "x": 173,
+          "y": 240
+        },
+        {
+          "x": 487,
+          "y": 240,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 658,
+        "height": 498
+      }
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "@sentry/electron": "^7.4.0",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.80.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
+    "electron-store": "^11.0.2",
+    "electron-updater": "^6.6.2",
+    "get-video-duration": "^4.1.0",
+    "lucide-react": "^0.555.0",
+    "posthog-js": "^1.285.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.9.6",
+    "recharts": "^3.4.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/ui": "^4.0.8",
+    "appdmg": "^0.6.6",
+    "electron": "39.1.1",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "happy-dom": "^20.0.10",
+    "node-addon-api": "^8.5.0",
+    "node-gyp": "^11.5.0",
+    "patch-package": "^8.0.1",
+    "plist": "^3.1.0",
+    "pngjs": "^7.0.0",
+    "postcss": "^8.4.35",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.3",
+    "vite": "^7.2.2",
+    "vite-plugin-electron": "^0.29.0",
+    "vitest": "^4.0.8"
+  }
+}

@@ -1,0 +1,94 @@
+name: Frontend CI
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+on:
+  workflow_dispatch: # Manual trigger only - use npm run check-pr instead
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-checks:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            frontend/**/*.ts
+            frontend/**/*.tsx
+            frontend/**/*.js
+            frontend/**/*.jsx
+            frontend/**/*.json
+            frontend/**/*.md
+            frontend/**/*.css
+            frontend/**/*.scss
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          npm install --prefer-offline --no-audit --legacy-peer-deps || \
+          (npm cache clean --force && npm install --prefer-offline --no-audit --legacy-peer-deps)
+
+      - name: Check formatting with Prettier
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          PRETTIER_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep -E '^frontend/.*\.(ts|tsx|js|jsx|json|css|scss|md)$' | tr '\n' ' ')
+
+          if [ -n "$PRETTIER_FILES" ]; then
+            echo "Checking formatting for: $PRETTIER_FILES"
+            npx prettier --check $PRETTIER_FILES
+          else
+            echo "No files to format"
+          fi
+
+      - name: Lint frontend files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: npm run lint:frontend
+
+      - name: Run frontend tests
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: npm run test:frontend
+        env:
+          NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID }}
+          NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID }}
+          NEXT_PUBLIC_STRIPE_INTERNAL_COUPON_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_INTERNAL_COUPON_ID }}
+
+      - name: Build frontend
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: npm run build:frontend
+        env:
+          NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID }}
+          NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID }}
+          NEXT_PUBLIC_STRIPE_INTERNAL_COUPON_ID: ${{ secrets.NEXT_PUBLIC_STRIPE_INTERNAL_COUPON_ID }}
+
+      - name: Comment on PR if checks fail
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Frontend quality checks failed**\n\nPlease fix the following issues:\n- Run `npm run format:frontend` to fix formatting\n- Run `npm run lint:frontend` to check for linting errors\n- Run `npm run test:frontend` to run tests\n- Run `npm run build:frontend` to check for build errors\n\nThen push your changes to update this PR.'
+            })

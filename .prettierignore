@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+out
+build
+dist
+dist-electron
+dist-renderer
+**/.next
+**/out
+**/build
+**/dist
+**/dist-electron
+**/dist-renderer
+
+# Cache and generated files
+.turbo
+*.tsbuildinfo
+next-env.d.ts
+
+# Generated database types
+supabase/database.types.ts
+frontend/supabase/database.types.ts
+om-desktop/src/dashboard/types/database.ts
+
+# Coverage
+coverage
+**/coverage
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+
+# Storage and uploads
+frontend/public/uploads
+supabase-backend/storage
+supabase-backend/data
+recording-samples
+
+# Environment
+.env*
+

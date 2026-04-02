@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["node"]
+  },
+  "include": ["lib/**/*.ts", "lib/**/*.js"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "storage",
+    "data",
+    "api",
+    "functions",
+    "lib/data/supabase.ts",
+    "lib/storage/supabase.ts"
+  ]
+}

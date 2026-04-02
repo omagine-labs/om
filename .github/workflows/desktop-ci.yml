@@ -1,0 +1,52 @@
+name: Desktop App CI
+
+# Run checks on desktop app changes
+# Can be manually triggered if needed via GitHub UI
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'om-desktop/**'
+      - '.github/workflows/desktop-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'om-desktop/**'
+      - '.github/workflows/desktop-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # Using ubuntu instead of macos to save 90% on Actions costs
+    defaults:
+      run:
+        working-directory: om-desktop
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Install desktop dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      # Build removed - only happens on releases
+      # This saves GitHub Actions minutes (macOS builds are 10x cost)

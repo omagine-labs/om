@@ -1,0 +1,251 @@
+name: Database Migration Checks
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+on:
+  workflow_dispatch: # Manual trigger only - use npm run check-pr instead
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-safety-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            supabase/migrations/*.sql
+            supabase/database.types.ts
+
+      - name: Skip if no migration changes
+        if: ${{ !contains(steps.changed-files.outputs.all_changed_files, 'migrations') }}
+        run: |
+          echo "No migration files changed, skipping checks"
+          exit 0
+
+      - name: Check 1 - Migration Syntax Validation
+        if: contains(steps.changed-files.outputs.all_changed_files, 'migrations')
+        run: |
+          echo "🔍 Validating migration syntax..."
+
+          MIGRATION_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep 'migrations/.*\.sql$' | tr '\n' ' ')
+
+          for file in $MIGRATION_FILES; do
+            echo "Checking: $file"
+
+            # Check for basic SQL syntax errors
+            if ! grep -q ";" "$file"; then
+              echo "❌ ERROR: $file appears to have no SQL statements (missing semicolons)"
+              exit 1
+            fi
+
+            # Check for balanced BEGIN/COMMIT
+            BEGIN_COUNT=$(grep -c "BEGIN" "$file" || echo 0)
+            COMMIT_COUNT=$(grep -c "COMMIT" "$file" || echo 0)
+
+            if [ "$BEGIN_COUNT" -ne "$COMMIT_COUNT" ]; then
+              echo "⚠️  WARNING: $file has unbalanced BEGIN ($BEGIN_COUNT) and COMMIT ($COMMIT_COUNT) statements"
+            fi
+          done
+
+          echo "✅ Migration syntax validation passed"
+
+      - name: Check 2 - Destructive Operation Detection
+        if: contains(steps.changed-files.outputs.all_changed_files, 'migrations')
+        run: |
+          echo "🔍 Scanning for destructive operations..."
+
+          MIGRATION_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep 'migrations/.*\.sql$' | tr '\n' ' ')
+          DESTRUCTIVE_FOUND=false
+
+          for file in $MIGRATION_FILES; do
+            echo "Scanning: $file"
+
+            # Check if file has CI-BYPASS annotation
+            if grep -q "CI-BYPASS: destructive-operations" "$file"; then
+              echo "ℹ️  File contains CI-BYPASS annotation - skipping destructive operation checks"
+              echo "⚠️  Manual review required: This migration is marked as safe by the author"
+              continue
+            fi
+
+            # Check for DROP TABLE
+            if grep -iE "DROP\s+TABLE" "$file"; then
+              echo "❌ DESTRUCTIVE: $file contains DROP TABLE"
+              DESTRUCTIVE_FOUND=true
+            fi
+
+            # Check for DROP COLUMN
+            if grep -iE "DROP\s+COLUMN" "$file"; then
+              echo "❌ DESTRUCTIVE: $file contains DROP COLUMN"
+              DESTRUCTIVE_FOUND=true
+            fi
+
+            # Check for TRUNCATE
+            if grep -iE "TRUNCATE\s+TABLE" "$file"; then
+              echo "❌ DESTRUCTIVE: $file contains TRUNCATE"
+              DESTRUCTIVE_FOUND=true
+            fi
+
+            # Check for DELETE without WHERE
+            if grep -iE "DELETE\s+FROM\s+\w+\s*;" "$file"; then
+              echo "❌ DESTRUCTIVE: $file contains DELETE without WHERE clause"
+              DESTRUCTIVE_FOUND=true
+            fi
+
+            # Check for ALTER COLUMN TYPE without USING
+            if grep -iE "ALTER\s+COLUMN\s+\w+\s+TYPE" "$file" && ! grep -iE "USING" "$file"; then
+              echo "⚠️  RISKY: $file contains ALTER COLUMN TYPE without USING clause (may lose data)"
+              DESTRUCTIVE_FOUND=true
+            fi
+          done
+
+          if [ "$DESTRUCTIVE_FOUND" = true ]; then
+            echo ""
+            echo "❌ DESTRUCTIVE OPERATIONS DETECTED!"
+            echo ""
+            echo "Your migration contains operations that could result in data loss."
+            echo "Please review carefully and ensure this is intentional."
+            echo ""
+            echo "Safe alternatives:"
+            echo "  - Instead of DROP COLUMN: Add new column, migrate data, deprecate old column"
+            echo "  - Instead of DROP TABLE: Rename table to *_deprecated, migrate data, clean up later"
+            echo "  - Instead of ALTER TYPE: Add new column with new type, backfill data, swap columns"
+            echo ""
+            exit 1
+          fi
+
+          echo "✅ No destructive operations detected"
+
+      - name: Check 3 - RLS Policy Verification
+        if: contains(steps.changed-files.outputs.all_changed_files, 'migrations')
+        run: |
+          echo "🔍 Checking for RLS policies on new tables..."
+
+          MIGRATION_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep 'migrations/.*\.sql$' | tr '\n' ' ')
+          MISSING_RLS=false
+
+          for file in $MIGRATION_FILES; do
+            echo "Checking: $file"
+
+            # Find CREATE TABLE statements
+            TABLES=$(grep -iE "CREATE\s+TABLE\s+(\w+)" "$file" | sed -E 's/.*CREATE\s+TABLE\s+([a-zA-Z_][a-zA-Z0-9_]*).*/\1/I' || echo "")
+
+            for table in $TABLES; do
+              # Check if RLS is enabled for this table
+              if ! grep -iE "ALTER\s+TABLE\s+$table\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY" "$file"; then
+                echo "⚠️  WARNING: Table '$table' created without RLS policy"
+                MISSING_RLS=true
+              else
+                echo "✅ Table '$table' has RLS enabled"
+              fi
+            done
+          done
+
+          if [ "$MISSING_RLS" = true ]; then
+            echo ""
+            echo "⚠️  WARNING: Some tables are missing RLS policies"
+            echo ""
+            echo "All tables should have Row Level Security enabled to ensure proper data isolation."
+            echo "Add the following to your migration:"
+            echo ""
+            echo "  ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;"
+            echo ""
+            echo "  CREATE POLICY \"policy_name\" ON table_name"
+            echo "  FOR SELECT USING (user_id = auth.uid());"
+            echo ""
+            # Don't fail - just warn, as some tables (like lookup tables) may not need RLS
+          fi
+
+          echo "✅ RLS policy check completed"
+
+      - name: Check 4 - Type Generation Status
+        if: contains(steps.changed-files.outputs.all_changed_files, 'migrations')
+        run: |
+          echo "🔍 Checking if database.types.ts is in sync..."
+
+          TYPES_CHANGED=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "database.types.ts" && echo "true" || echo "false")
+          MIGRATIONS_CHANGED=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "migrations" && echo "true" || echo "false")
+
+          if [ "$MIGRATIONS_CHANGED" = "true" ] && [ "$TYPES_CHANGED" != "true" ]; then
+            echo "❌ ERROR: Migrations changed but database.types.ts was not updated"
+            echo ""
+            echo "You must regenerate types from your local database after testing migrations:"
+            echo ""
+            echo "  supabase gen types typescript --local > supabase/database.types.ts"
+            echo ""
+            echo "Then commit the updated database.types.ts file."
+            exit 1
+          fi
+
+          echo "✅ Type generation status is correct"
+
+      - name: Check 5 - Anti-pattern Detection
+        if: contains(steps.changed-files.outputs.all_changed_files, 'migrations')
+        run: |
+          echo "🔍 Checking for common anti-patterns..."
+
+          MIGRATION_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep 'migrations/.*\.sql$' | tr '\n' ' ')
+          WARNINGS=false
+
+          for file in $MIGRATION_FILES; do
+            echo "Checking: $file"
+
+            # Check for tables without user_id (potential multi-tenant issue)
+            TABLES=$(grep -iE "CREATE\s+TABLE\s+(\w+)" "$file" | sed -E 's/.*CREATE\s+TABLE\s+([a-zA-Z_][a-zA-Z0-9_]*).*/\1/I' || echo "")
+
+            for table in $TABLES; do
+              # Skip system tables
+              if [[ "$table" =~ ^(auth|storage|pg_|information_schema) ]]; then
+                continue
+              fi
+
+              # Check if table has user_id column
+              TABLE_BLOCK=$(sed -n "/CREATE\s\+TABLE\s\+$table/,/);/p" "$file")
+              if ! echo "$TABLE_BLOCK" | grep -iE "user_id|owner_id|created_by"; then
+                echo "⚠️  WARNING: Table '$table' may be missing user scoping column (user_id)"
+                WARNINGS=true
+              fi
+            done
+
+            # Check for indexes on foreign keys
+            FKS=$(grep -iE "REFERENCES\s+\w+" "$file" | wc -l)
+            INDEXES=$(grep -iE "CREATE\s+INDEX" "$file" | wc -l)
+
+            if [ "$FKS" -gt 0 ] && [ "$INDEXES" -eq 0 ]; then
+              echo "⚠️  INFO: Migration adds foreign keys but no indexes (may affect query performance)"
+            fi
+          done
+
+          if [ "$WARNINGS" = true ]; then
+            echo ""
+            echo "⚠️  Anti-pattern warnings detected (not blocking)"
+            echo ""
+            echo "Consider adding user_id columns for proper multi-tenant data isolation."
+          fi
+
+          echo "✅ Anti-pattern check completed"
+
+      - name: Comment on PR if checks fail
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Database migration checks failed**\n\nOne or more safety checks failed. Please review the job logs for details.\n\nCommon fixes:\n- Regenerate types from local DB: `supabase gen types typescript --local > supabase/database.types.ts`\n- Remove destructive operations (DROP TABLE, DROP COLUMN, TRUNCATE)\n- Add RLS policies to new tables\n- Test migration locally: `supabase stop && supabase start` (applies migrations incrementally)\n\nFor guidance, use the database-ops agent in Claude Code.'
+            })

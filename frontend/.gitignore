@@ -1,0 +1,6 @@
+.vercel
+
+# Database types copied from root during deployment
+# (Local dev uses path alias to ../supabase/database.types.ts)
+supabase/.temp/
+supabase/migrations/
